@@ -58,10 +58,10 @@ void ListAddAfter(List_t* list, int index, double value)
 
     //FIXME ERROR
     if(index < 0) return;
-    if(index > list->list_size) return;
+    if(index > (int)list->list_size) return;
     if(list->elements[index].previous < 0) return;
 
-    if(list->first_empty >= list->list_size)
+    if(list->first_empty >= (int)list->list_size)
     {
         ReallocList(list);
     }
@@ -73,6 +73,10 @@ void ListAddAfter(List_t* list, int index, double value)
     list->elements[added_index].previous = index;
     list->elements[added_index].next = list->elements[index].next;
 
+    if(list->elements[added_index].next != 0) 
+    {
+        list->elements[list->elements[added_index].next].previous = added_index;
+    }
     if(index != 0)
     {
         list->elements[index].next = added_index;
@@ -89,49 +93,25 @@ void ListAddAfter(List_t* list, int index, double value)
 }
 
 //FIXME non void
-void ListDelAfter(List_t* list, int index)
-{
-    assert(list);
-
-    //FIXME ERROR
-    if(index < 0) return;
-    if(index > list->list_size) return;
-    if(list->elements[index].previous < 0) return;
-
-    int deleted_index = list->elements[index].next;
-    //FIXME чек корректности индекса
-
-    if(list->elements[deleted_index].next > 0)
-    {
-        list->elements[list->elements[deleted_index].next].previous = index;
-    }    
-
-    list->elements[index].next = list->elements[deleted_index].next;
-    
-    list->elements[deleted_index].next = -list->first_empty;
-    list->elements[deleted_index].previous = -1;
-    list->first_empty = deleted_index;
-
-    ListDump(list);
-}
-
 void ListDel(List_t* list, int index)
 {
     assert(list);
 
     //FIXME ERROR
     if(index < 0) return;
-    if(index > list->list_size) return;
+    if(index > (int)list->list_size) return;
     if(list->elements[index].previous < 0) return;
 
-    //FIXME чек корректности индекса
+    ListElement_t* deleting_elem = &list->elements[index];
 
-    if(list->elements[index].next > 0)
+    if(deleting_elem->next > 0)
     {
-        list->elements[list->elements[index].next].previous = list->elements[index].previous;
+        list->elements[deleting_elem->next].previous = deleting_elem->previous;
+    }
+    if(deleting_elem->previous > 0)
+    {
+        list->elements[deleting_elem->previous].next = deleting_elem->next;
     }    
-
-    list->elements[list->elements[index].previous].next = list->elements[index].next;
     
     list->elements[index].next = -list->first_empty;
     list->elements[index].previous = -1;
@@ -151,7 +131,7 @@ static void ReallocList(List_t* list)
         return;
     }
         //FIXME i
-    for(int i = list->first_empty; i < list->list_size; i++)
+    for(int i = list->first_empty; i < (int)list->list_size; i++)
     {
         list->elements[i].value = 0;
         list->elements[i].next = -((int)i + 1);

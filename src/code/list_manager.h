@@ -25,8 +25,7 @@ typedef struct
 void ListInit       (List_t* list);
 void ListDestroy    (List_t* list);
 void ListAddAfter   (List_t* list, int index, double value);
-void ListDelAfter   (List_t* list, int index);
-void ListDel        (List_t* list, int index);
+void ListDel   (List_t* list, int index);
 
 const size_t LIST_START_SIZE = 5;
 const size_t LIST_MULTIPLIER_SIZE = 2;

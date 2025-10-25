@@ -19,8 +19,8 @@ int main()
 
     ListAddAfter(&main_list, 3, 666); 
 
-    ListDelAfter(&main_list, 3);
-    ListDel(&main_list, 0);
+    ListDel(&main_list, 4);
+    ListDel(&main_list, 11);
 
     // DECONSTRUCT
     ListDestroy(&main_list);

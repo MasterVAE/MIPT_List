@@ -20,7 +20,7 @@ void ListDump(List_t* list)
 {
     assert(list);
 
-    ConsoleDump(list);
+    //ConsoleDump(list);
     HTMLDump(list, list->log_file);
 
     current_dump++;
@@ -124,14 +124,60 @@ static void WriteGraph(List_t* list, FILE* file)
 
     sprintf(string, "digraph\n"
                     "{\n"
-                    "    node[color=\"red\",fontsize=14];\n"
-                    "    edge[color=\"darkgreen\",fontcolor=\"blue\",fontsize=12];\n");
+                    "rankdir=LR;\n"
+                    "node[color=\"red\",fontsize=14];\n"
+                    "edge[color=\"darkgreen\",fontcolor=\"blue\",fontsize=12];\n");
     WRITE_S();
 
 //OPEN[shape="rectangle",style="filled",fillcolor="lightgrey"];
 //CLOSED[shape="octagon",label="Финиш"];
 //VERIFIED[shape="rectangle",style="rounded"];
 
+    for(size_t element = 0; element < list->list_size; element++)
+    {
+        sprintf(string, "ELEM_%lu[shape=\"rectangle\",style=\"filled\",fillcolor=\"lightgrey\""
+                                                    "label=\" ELEMENT %lu\n"
+                                                    "value: %g \n"
+                                                    "next: %d \n"
+                                                    "previous: %d\""
+                                                    "]\n", 
+                                                        element, 
+                                                        element, 
+                                                        list->elements[element].value,
+                                                        list->elements[element].next,
+                                                        list->elements[element].previous);
+        WRITE_S();
+    }
+    
+    for(size_t element = 0; element < list->list_size-1; element++)
+    {
+        sprintf(string, "ELEM_%lu->ELEM_%lu[color=\"white\"]\n", 
+                                                        element, element+1);
+        WRITE_S();
+    }
+
+    for(size_t element = 0; element < list->list_size; element++)
+    {
+        int next = list->elements[element].next;
+        if(abs(next) < list->list_size)
+        {
+
+            sprintf(string, "ELEM_%lu->ELEM_%d[color=\"red\", tailport=\"n\","
+                                                             "headport=\"n\"]\n",
+                                                        element, abs(next));
+            WRITE_S();
+        }
+
+        int prev = list->elements[element].previous;
+        if(prev >= 0 && prev < list->list_size)
+        {
+
+            sprintf(string, "ELEM_%lu->ELEM_%d[color=\"blue\", tailport=\"s\", headport=\"s\"]\n", 
+                                                        element, abs(prev));
+            WRITE_S();
+        }
+    }
+    
     sprintf(string, "}");
     WRITE_S();
 }
