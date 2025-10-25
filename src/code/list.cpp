@@ -1,17 +1,28 @@
 #include <stdio.h>
 
 #include "list_manager.h"
+#include "list_logger.h"
 
 int main()
 {
+    // INIT
     List_t main_list;
-
+    
     ListInit(&main_list);
     ListDump(&main_list);
-    for(int i = 0; i < 15; i++)
+
+    // PROCESS
+    for(int i = 0; i < 10; i++)
     {
         ListAddAfter(&main_list, i, 1.0/(i+1)); 
     }
+
+    ListAddAfter(&main_list, 3, 666); 
+
+    ListDelAfter(&main_list, 3);
+    ListDel(&main_list, 0);
+
+    // DECONSTRUCT
     ListDestroy(&main_list);
 
     return 0;

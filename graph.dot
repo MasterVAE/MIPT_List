@@ -1,0 +1,5 @@
+digraph
+{
+    node[color="red",fontsize=14];
+    edge[color="darkgreen",fontcolor="blue",fontsize=12];
+}
