@@ -10,25 +10,31 @@
 #define WRITE(string) fwrite(string, strlen(string), 1, file);
 #define WRITE_S() fwrite(string, strlen(string), 1, file);
 
+static ListErr ConsoleDump(List_t* list);
+static ListErr HTMLDump(List_t* list, FILE* file);
+static ListErr WriteGraph(List_t* list, FILE* file);
+
+const char* dot_file_name = "graph.dot";
+const int STRING_BUFFER_SIZE = 200;
+
 int current_dump = 1;
 
-static void ConsoleDump(List_t* list);
-static void HTMLDump(List_t* list, FILE* file);
-static void WriteGraph(List_t* list, FILE* file);
-
-void ListDump(List_t* list)
+ListErr ListDump(List_t* list)
 {
-    assert(list);
+    if(!list) return LIST_NULL;
 
     //ConsoleDump(list);
-    HTMLDump(list, list->log_file);
+    ListErr err = HTMLDump(list, list->log_file);
+    CHECK(err);
 
     current_dump++;
+
+    return LIST_CORRECT;
 }
 
-static void ConsoleDump(List_t* list)
+static ListErr ConsoleDump(List_t* list)
 {
-    assert(list);
+    if(!list) return LIST_NULL;
 
     printf("========== LIST DUMP START ============\n\n");
 
@@ -55,20 +61,21 @@ static void ConsoleDump(List_t* list)
     printf("\n\n========== LIST DUMP END   ============\n\n");
 }
 
-void CreateBaseHTML(FILE* file)
+ListErr CreateBaseHTML(FILE* file)
 {
-    assert(file);
+    if(!file) return LIST_FILE_ERROR;
     
     WRITE("<pre>\n");
     WRITE("<h2>LIST LOGGER</h2>\n");
 
 }
 
-static void HTMLDump(List_t* list, FILE* file)
+static ListErr HTMLDump(List_t* list, FILE* file)
 {
-    assert(file);
-    //FIXME 100;
-    char string[100] = {};
+    if(!list) return LIST_NULL;
+    if(!file) return LIST_FILE_ERROR;
+
+    char string[STRING_BUFFER_SIZE] = {};
 
     sprintf(string, "<h3>LOG №%d</h3>", current_dump);
     WRITE_S();
@@ -103,24 +110,25 @@ static void HTMLDump(List_t* list, FILE* file)
     sprintf(string, "\n\n");
     WRITE_S();
 
-    //FIXME name to const
-    FILE* dot_file = fopen("graph.dot", "w+");
+    FILE* dot_file = fopen(dot_file_name, "w+");
+    if(!dot_file) return LIST_FILE_ERROR;
+
     WriteGraph(list, dot_file);
     fclose(dot_file);
 
-    sprintf(string, "dot -Tpng graph.dot -o files/log_%d.png", current_dump);
+    sprintf(string, "dot -Tpng %s -o files/log_%d.png", dot_file_name, current_dump);
     system(string);
 
     sprintf(string, "<h1> <img src=\"files/log_%d.png\" align=\"top\"/> </h1>", current_dump);
     WRITE_S();
 }
 
-static void WriteGraph(List_t* list, FILE* file)
+static ListErr WriteGraph(List_t* list, FILE* file)
 {
-    assert(list);
-    assert(file);
+    if(!list) return LIST_NULL;
+    if(!file) return LIST_FILE_ERROR;
 
-    char string[200] = {};
+    char string[STRING_BUFFER_SIZE] = {};
 
     sprintf(string, "digraph\n"
                     "{\n"
@@ -128,10 +136,6 @@ static void WriteGraph(List_t* list, FILE* file)
                     "node[color=\"red\",fontsize=14];\n"
                     "edge[color=\"darkgreen\",fontcolor=\"blue\",fontsize=12];\n");
     WRITE_S();
-
-//OPEN[shape="rectangle",style="filled",fillcolor="lightgrey"];
-//CLOSED[shape="octagon",label="Финиш"];
-//VERIFIED[shape="rectangle",style="rounded"];
 
     for(size_t element = 0; element < list->list_size; element++)
     {
@@ -180,4 +184,6 @@ static void WriteGraph(List_t* list, FILE* file)
     
     sprintf(string, "}");
     WRITE_S();
+
+    return LIST_CORRECT;
 }

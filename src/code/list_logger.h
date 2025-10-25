@@ -3,7 +3,7 @@
 
 #include "list_manager.h"
 
-void ListDump(List_t* list);
-void CreateBaseHTML(FILE* file);
+ListErr ListDump(List_t* list);
+ListErr CreateBaseHTML(FILE* file);
 
 #endif // LIST_LOGGER_H_

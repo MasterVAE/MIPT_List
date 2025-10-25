@@ -10,9 +10,9 @@
 static void ReallocList(List_t* list);
 
 //FIXME non void
-void ListInit(List_t* list)
+ListErr ListInit(List_t* list)
 {
-    assert(list);
+    if(!list) return LIST_NULL;
 
     list->list_size = LIST_START_SIZE;
     list->elements = (ListElement_t*)calloc(LIST_START_SIZE, sizeof(ListElement_t));
@@ -37,7 +37,7 @@ void ListInit(List_t* list)
     }
 
     FILE* file = fopen("logger.html", "w+");
-    //FIXME file check
+    if(!file) return LIST_FILE_ERROR;
     CreateBaseHTML(file);
 
     list->log_file = file;
@@ -45,21 +45,18 @@ void ListInit(List_t* list)
 
 void ListDestroy(List_t* list)
 {
-    assert(list);
+    if(!list)  return;
     free(list->elements);
     fclose(list->log_file);
     memset(list, 0, sizeof(List_t));
 }
 
-//FIXME non void
-void ListAddAfter(List_t* list, int index, double value)
+ListErr ListAddAfter(List_t* list, int index, double value)
 {
-    assert(list);
-
-    //FIXME ERROR
-    if(index < 0) return;
-    if(index > (int)list->list_size) return;
-    if(list->elements[index].previous < 0) return;
+    if(!list)                               return LIST_NULL;
+    if(index < 0)                           return LIST_INCORRECT_INDEX;
+    if(index > (int)list->list_size)        return LIST_INCORRECT_INDEX;
+    if(list->elements[index].previous < 0)  return LIST_INCORRECT_INDEX;
 
     if(list->first_empty >= (int)list->list_size)
     {
@@ -90,17 +87,17 @@ void ListAddAfter(List_t* list, int index, double value)
     }
 
     ListDump(list);
+
+    return LIST_CORRECT;
 }
 
 //FIXME non void
-void ListDel(List_t* list, int index)
+ListErr ListDel(List_t* list, int index)
 {
-    assert(list);
-
-    //FIXME ERROR
-    if(index < 0) return;
-    if(index > (int)list->list_size) return;
-    if(list->elements[index].previous < 0) return;
+    if(!list)                               return LIST_NULL;
+    if(index < 0)                           return LIST_INCORRECT_INDEX;
+    if(index > (int)list->list_size)        return LIST_INCORRECT_INDEX;
+    if(list->elements[index].previous < 0)  return LIST_INCORRECT_INDEX;
 
     ListElement_t* deleting_elem = &list->elements[index];
 
@@ -118,8 +115,11 @@ void ListDel(List_t* list, int index)
     list->first_empty = index;
 
     ListDump(list);
+
+    return LIST_CORRECT;
 }
 
+//FIXME err
 static void ReallocList(List_t* list)
 {
     list->list_size *= LIST_MULTIPLIER_SIZE;
@@ -130,11 +130,11 @@ static void ReallocList(List_t* list)
         free(list->elements);
         return;
     }
-        //FIXME i
-    for(int i = list->first_empty; i < (int)list->list_size; i++)
+
+    for(int element = list->first_empty; element < (int)list->list_size; element++)
     {
-        list->elements[i].value = 0;
-        list->elements[i].next = -((int)i + 1);
-        list->elements[i].previous = -1;
+        list->elements[element].value = 0;
+        list->elements[element].next = -((int)element + 1);
+        list->elements[element].previous = -1;
     }
 }

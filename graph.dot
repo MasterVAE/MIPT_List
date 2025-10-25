@@ -102,52 +102,33 @@ ELEM_15->ELEM_16[color="white"]
 ELEM_16->ELEM_17[color="white"]
 ELEM_17->ELEM_18[color="white"]
 ELEM_18->ELEM_19[color="white"]
-ELEM_0->ELEM_0[color="red", tailport="n",headport="n"
-headclip=true]
+ELEM_0->ELEM_0[color="red", tailport="n",headport="n"]
 ELEM_0->ELEM_0[color="blue", tailport="s", headport="s"]
-ELEM_1->ELEM_2[color="red", tailport="n",headport="n"
-headclip=true]
+ELEM_1->ELEM_2[color="red", tailport="n",headport="n"]
 ELEM_1->ELEM_0[color="blue", tailport="s", headport="s"]
-ELEM_2->ELEM_3[color="red", tailport="n",headport="n"
-headclip=true]
+ELEM_2->ELEM_3[color="red", tailport="n",headport="n"]
 ELEM_2->ELEM_1[color="blue", tailport="s", headport="s"]
-ELEM_3->ELEM_5[color="red", tailport="n",headport="n"
-headclip=true]
+ELEM_3->ELEM_5[color="red", tailport="n",headport="n"]
 ELEM_3->ELEM_2[color="blue", tailport="s", headport="s"]
-ELEM_4->ELEM_12[color="red", tailport="n",headport="n"
-headclip=true]
-ELEM_5->ELEM_6[color="red", tailport="n",headport="n"
-headclip=true]
+ELEM_4->ELEM_12[color="red", tailport="n",headport="n"]
+ELEM_5->ELEM_6[color="red", tailport="n",headport="n"]
 ELEM_5->ELEM_3[color="blue", tailport="s", headport="s"]
-ELEM_6->ELEM_7[color="red", tailport="n",headport="n"
-headclip=true]
+ELEM_6->ELEM_7[color="red", tailport="n",headport="n"]
 ELEM_6->ELEM_5[color="blue", tailport="s", headport="s"]
-ELEM_7->ELEM_8[color="red", tailport="n",headport="n"
-headclip=true]
+ELEM_7->ELEM_8[color="red", tailport="n",headport="n"]
 ELEM_7->ELEM_6[color="blue", tailport="s", headport="s"]
-ELEM_8->ELEM_9[color="red", tailport="n",headport="n"
-headclip=true]
+ELEM_8->ELEM_9[color="red", tailport="n",headport="n"]
 ELEM_8->ELEM_7[color="blue", tailport="s", headport="s"]
-ELEM_9->ELEM_10[color="red", tailport="n",headport="n"
-headclip=true]
+ELEM_9->ELEM_10[color="red", tailport="n",headport="n"]
 ELEM_9->ELEM_8[color="blue", tailport="s", headport="s"]
-ELEM_10->ELEM_0[color="red", tailport="n",headport="n"
-headclip=true]
+ELEM_10->ELEM_0[color="red", tailport="n",headport="n"]
 ELEM_10->ELEM_9[color="blue", tailport="s", headport="s"]
-ELEM_11->ELEM_4[color="red", tailport="n",headport="n"
-headclip=true]
-ELEM_12->ELEM_13[color="red", tailport="n",headport="n"
-headclip=true]
-ELEM_13->ELEM_14[color="red", tailport="n",headport="n"
-headclip=true]
-ELEM_14->ELEM_15[color="red", tailport="n",headport="n"
-headclip=true]
-ELEM_15->ELEM_16[color="red", tailport="n",headport="n"
-headclip=true]
-ELEM_16->ELEM_17[color="red", tailport="n",headport="n"
-headclip=true]
-ELEM_17->ELEM_18[color="red", tailport="n",headport="n"
-headclip=true]
-ELEM_18->ELEM_19[color="red", tailport="n",headport="n"
-headclip=true]
+ELEM_11->ELEM_4[color="red", tailport="n",headport="n"]
+ELEM_12->ELEM_13[color="red", tailport="n",headport="n"]
+ELEM_13->ELEM_14[color="red", tailport="n",headport="n"]
+ELEM_14->ELEM_15[color="red", tailport="n",headport="n"]
+ELEM_15->ELEM_16[color="red", tailport="n",headport="n"]
+ELEM_16->ELEM_17[color="red", tailport="n",headport="n"]
+ELEM_17->ELEM_18[color="red", tailport="n",headport="n"]
+ELEM_18->ELEM_19[color="red", tailport="n",headport="n"]
 }
