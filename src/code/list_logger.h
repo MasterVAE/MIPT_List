@@ -4,6 +4,8 @@
 #include "list_manager.h"
 
 ListErr ListDump(List_t* list);
-ListErr CreateBaseHTML(FILE* file);
+
+ListErr StartBaseHTML(FILE* file);
+ListErr EndBaseHTML(FILE* file);
 
 #endif // LIST_LOGGER_H_

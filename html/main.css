@@ -1,0 +1,65 @@
+@font-face 
+{
+    font-family: 'Blazma';
+    src: url('fonts/Blazma-Regular.otf');
+}
+
+@font-face 
+{
+    font-family: 'Tech';
+    src: url('fonts/ShareTechMono.otf');
+}
+
+
+hdr
+{
+    font-size: 300%;
+    font-family: Blazma;
+    color: #ab058f;
+    margin-left: 20px;
+}
+
+div.head
+{
+    width: 100%;
+    margin: 0px;
+    padding: 0%;
+    height: 60px;
+    text-align: center;
+    background-color: #040a80;
+}
+
+body.main
+{
+    margin: 0;
+    padding: 0;
+    background-color: #111111;
+}
+
+ul
+{
+    list-style-type: none;
+}
+
+li
+{
+    color: #bbbbbb;
+    font-family: Tech;
+    font-size: 120%;
+}
+
+p
+{
+    color: wheat;
+    font-family: Tech;
+    font-size: 150%;
+    margin-left: 20px;
+}
+
+h2
+{
+    color: #040aff;
+    font-family: Tech;
+    font-size: 200%;
+    margin-left: 20px;
+}
