@@ -63,7 +63,10 @@ void ListDestroy(List_t* list)
     EndBaseHTML(list->log_file);
 
     free(list->elements);
-    fclose(list->log_file);
+    if(list->log_file)
+    {
+        fclose(list->log_file);
+    }
     memset(list, 0, sizeof(List_t));
 }
 
@@ -99,7 +102,10 @@ ListErr ListAddAfter(List_t* list, int index, double value)
         list->elements[index].next = added_index;
     }
     
-    list->tail = added_index;
+    if(list->tail == index)
+    {
+        list->tail = added_index;
+    }
 
     if(index == 0)
     {
@@ -148,6 +154,26 @@ ListErr ListDel(List_t* list, int index)
     VERIFY(list);
 
     return LIST_CORRECT;
+}
+
+int ListNext(List_t* list, int index)
+{
+    if(!list                               
+    || index <= 0                      
+    || index > (int)list->list_capacity
+    || list->elements[index].previous < 0)  return 0;
+
+    return list->elements[index].next;
+}
+
+int ListPrev(List_t* list, int index)
+{
+    if(!list                               
+    || index <= 0                      
+    || index > (int)list->list_capacity
+    || list->elements[index].previous < 0)  return 0;
+
+    return list->elements[index].previous;
 }
 
 // УДЛИНЕНИЕ СПИСКА

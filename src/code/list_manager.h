@@ -1,8 +1,6 @@
 #ifndef LIST_MANAGER_H_
 #define LIST_MANAGER_H_
 
-#include <stdlib.h>
-
 enum ListErr
 {
     LIST_CORRECT,
@@ -35,11 +33,13 @@ typedef struct
     FILE* log_file;
 } List_t;
 
-ListErr ListInit       (List_t* list);
-void    ListDestroy    (List_t* list);
-ListErr ListAddAfter   (List_t* list, int index, double value);
-ListErr ListDel        (List_t* list, int index);
-ListErr ListVerify     (List_t* list);
+ListErr ListInit        (List_t* list);
+void    ListDestroy     (List_t* list);
+ListErr ListAddAfter    (List_t* list, int index, double value);
+ListErr ListDel         (List_t* list, int index);
+int     ListNext        (List_t* list, int index);
+int     ListPrev        (List_t* list, int index);
+ListErr ListVerify      (List_t* list);
 void PrintError(ListErr errcode);
 
 const size_t LIST_START_CAPACITY = 5;
