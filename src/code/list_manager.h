@@ -26,12 +26,17 @@ typedef struct
     size_t list_capacity;
     ListElement_t* elements;
 
-    int head;
-    int tail;
     int first_empty;
 
     FILE* log_file;
 } List_t;
+
+int     ListHead        (List_t* list);
+int     ListTail        (List_t* list);
+ListErr ListAddFront    (List_t* list, double value);
+ListErr ListAddBack     (List_t* list, double value);
+double  ListGetOnIndex  (List_t* list, int index);
+ListErr ListSetOnIndex  (List_t* list, int index, double value);
 
 ListErr ListInit        (List_t* list);
 void    ListDestroy     (List_t* list);
@@ -48,19 +53,21 @@ const size_t LIST_MULTIPLIER_CAPACITY = 2;
 const double SHIELD_VALUE = 0xF0F0F0F0;
 const double POISON = 0xBADF00D;
 
-#define CHECK(errcode) if(errcode != LIST_CORRECT)\
-                        {\
-                            PrintError(errcode);\
-                            return errcode;\
-                        }
-#define VERIFY(list) {\
-                        ListErr errr = ListVerify(list);\
-                        if(errr != LIST_CORRECT)\
-                        {\
-                            PrintError(errr);\
-                            ListDump(list);\
-                            return errr;\
-                        }\
-                    }
+#define CHECK(errcode)\
+if(errcode != LIST_CORRECT)\
+{\
+    PrintError(errcode);\
+    return errcode;\
+}
+#define VERIFY(list) \
+{\
+    ListErr errr = ListVerify(list);\
+    if(errr != LIST_CORRECT)\
+    {\
+        PrintError(errr);\
+        ListDump(list);\
+        return errr;\
+    }\
+}
 
 #endif // LIST_MANAGER_H_

@@ -8,10 +8,10 @@
 #include "list_logger.h"
 
 #define WRITE(string) fwrite(string, strlen(string), 1, file);
-#define WRITE_S() fwrite(string, strlen(string), 1, file);
 
 static ListErr ConsoleDump(List_t* list);
 static ListErr HTMLDump(List_t* list, FILE* file);
+static ListErr HTLMWriteInfo(List_t* list, FILE* file);
 static ListErr WriteGraph(List_t* list, FILE* file);
 static ListErr WriteGraphNodes(List_t* list, FILE* file);
 static ListErr WriteGraphArrows(List_t* list, FILE* file);
@@ -44,8 +44,8 @@ static ListErr ConsoleDump(List_t* list)
 
     printf("========== LIST DUMP START ============\n\n");
 
-    printf("HEAD:      %4d\n",   list->head);
-    printf("TAIL:      %4d\n",   list->tail);
+    printf("HEAD:      %4d\n",   list->elements[0].next);
+    printf("TAIL:      %4d\n",   list->elements[0].previous);
     printf("LIST SIZE: %4lu\n",  list->list_capacity);
     printf("NEXT EMPTY:%4d\n\n", list->first_empty);
 
@@ -59,7 +59,7 @@ static ListErr ConsoleDump(List_t* list)
     }
 
     printf("PRINTING: \n");
-    for(int i = list->head; i > 0; i = list->elements[i].next)
+    for(int i = list->elements[0].next; i > 0; i = list->elements[i].next)
     {
         printf("%g|", list->elements[i].value);
     }
@@ -90,7 +90,41 @@ ListErr EndBaseHTML(FILE* file)
 {
     if(!file) return LIST_FILE_ERROR;
     
-    WRITE(  "</body>");
+    WRITE("</body>\n"
+          "</html>\n");
+
+    return LIST_CORRECT;
+}
+
+static ListErr HTLMWriteInfo(List_t* list, FILE* file)
+{
+    if(!list) return LIST_NULL;
+    if(!file) return LIST_FILE_ERROR;
+
+    fprintf(file, "<h2>LOG №%d</h2>\n", current_dump);
+
+    fprintf(file, "<p>LIST CAPACITY: %4lu</p>\n",  list->list_capacity);
+    fprintf(file, "<p>NEXT EMPTY: %4d</p>\n\n", list->first_empty);
+    fprintf(file, "<ul>");
+
+    for(size_t element = 0; element < list->list_capacity; element++)
+    {
+        fprintf(file, "<li>[%2lu] VALUE: %10f      NEXT: %3d       PREVIOUS: %3d </li>\n", 
+                                                            element,
+                                                            list->elements[element].value, 
+                                                            list->elements[element].next,
+                                                            list->elements[element].previous);
+    }
+
+    fprintf(file,  "</ul>");
+
+    fprintf(file, "\n<p>PRINTING: </p>\n <p>");
+    for(int i = list->elements[0].next; i > 0; i = list->elements[i].next)
+    {
+        fprintf(file, "%g -> ", list->elements[i].value);
+    }
+
+    fprintf(file, "</p>\n\n");
 
     return LIST_CORRECT;
 }
@@ -101,42 +135,7 @@ static ListErr HTMLDump(List_t* list, FILE* file)
     if(!list) return LIST_NULL;
     if(!file) return LIST_FILE_ERROR;
 
-    char string[STRING_BUFFER_SIZE] = {};
-
-    sprintf(string, "<h2>LOG №%d</h2>\n", current_dump);
-    WRITE_S();
-
-    sprintf(string, "<p>LIST CAPACITY: %4lu</p>\n",  list->list_capacity);
-    WRITE_S();
-    sprintf(string, "<p>NEXT EMPTY: %4d</p>\n\n", list->first_empty);
-    WRITE_S();
-
-    sprintf(string, "<ul>");
-    WRITE_S();
-
-    for(size_t element = 0; element < list->list_capacity; element++)
-    {
-        sprintf(string, "<li>[%2lu] VALUE: %10f      NEXT: %3d       PREVIOUS: %3d </li>\n", 
-                                                            element,
-                                                            list->elements[element].value, 
-                                                            list->elements[element].next,
-                                                            list->elements[element].previous);
-        WRITE_S();
-    }
-
-    sprintf(string, "</ul>");
-    WRITE_S();
-
-    sprintf(string, "\n<p>PRINTING: </p>\n <p>");
-    WRITE_S();
-    for(int i = list->head; i > 0; i = list->elements[i].next)
-    {
-        sprintf(string, "%g -> ", list->elements[i].value);
-        WRITE_S();
-    }
-
-    sprintf(string, "</p>\n\n");
-    WRITE_S();
+    HTLMWriteInfo(list, file);
 
     FILE* dot_file = fopen(dot_file_name, "w+");
     if(!dot_file) return LIST_FILE_ERROR;
@@ -144,11 +143,11 @@ static ListErr HTMLDump(List_t* list, FILE* file)
     WriteGraph(list, dot_file);
     fclose(dot_file);
 
+    char string[STRING_BUFFER_SIZE] = {};
     sprintf(string, "dot -Tpng %s -o files/log_%d.png", dot_file_name, current_dump);
     system(string);
 
-    sprintf(string, "<h1> <img src=\"log_%d.png\" align=\"top\"/> </h1>", current_dump);
-    WRITE_S();
+    fprintf(file, "<h1> <img src=\"log_%d.png\" align=\"top\"/> </h1>", current_dump);
 
     return LIST_CORRECT;
 }
@@ -159,9 +158,9 @@ static ListErr WriteGraph(List_t* list, FILE* file)
     if(!list) return LIST_NULL;
     if(!file) return LIST_FILE_ERROR;
 
-    char string[STRING_BUFFER_SIZE] = {};
 
-    sprintf(string, "digraph\n"
+
+    fprintf(file,   "digraph\n"
                     "{\n"
                     "bgcolor=\"#111111\""
                     "rankdir=LR;\n"
@@ -169,8 +168,7 @@ static ListErr WriteGraph(List_t* list, FILE* file)
                                                      ",fontcolor=\"#F5DEB3\""
                                                      ",shape=\"rectangle\""
                                                      ",style=\"filled\"];\n"
-                    "edge[color=\"darkgreen\",fontsize=15,penwidth=2];\n");
-    WRITE_S();
+                    "edge[color=" DEFAULT_COLOR ",fontsize=15, penwidth=2, dir=forward];\n");
 
     
     ListErr err = WriteGraphNodes(list, file);
@@ -188,69 +186,46 @@ static ListErr WriteGraphNodes(List_t* list, FILE* file)
     if(!list) return LIST_NULL;
     if(!file) return LIST_FILE_ERROR;
 
-    char string[STRING_BUFFER_SIZE] = {};
-
+    fprintf(file, "ELEM_0[pos=\"0,0!\"label=\" ELEMENT 0\n");
     if(list->elements[0].value == SHIELD_VALUE) 
     {
-        sprintf(string, "ELEM_0["
-                                "label=\" ELEMENT 0\n"
-                                "value: SHIELD \n"
-                                "head: %d \n"
-                                "tail: %d\""
-                                "]\n", 
-                        list->head,
-                        list->tail);
-        WRITE_S();
+        fprintf(file,"value: SHIELD \n");
     }
     else
     {
-        sprintf(string, "ELEM_0["
-                                "label=\" ELEMENT 0\n"
-                                "value: %g \n"
-                                "next: %d \n"
-                                "previous: %d\""
-                                "]\n", 
-                        list->elements[0].value,
+        fprintf(file, "value: %g \n", list->elements[0].value);
+    }
+    fprintf(file,   "head: %d \n tail: %d\"]\n", 
                         list->elements[0].next,
                         list->elements[0].previous);
-        WRITE_S();
-    }
 
     for(size_t element = 1; element < list->list_capacity; element++)
     {
+        fprintf(file,   "ELEM_%lu[pos=\"%d,0!\", label=\" ELEMENT %lu\n", 
+                            element, (int)element*3, element);
+
         if(list->elements[element].value == POISON)
         {
-            sprintf(string, "ELEM_%lu["
-                                      "label=\" ELEMENT %lu\n"
-                                      "value: POISON \n"
-                                      "next: %d \n\""
-                                      "]\n", 
-                            element, 
-                            element,
-                            list->elements[element].next);
-            WRITE_S();
+            fprintf(file,   "value: POISON \n"
+                            "next: %d \n\""
+                            "]\n", 
+                                list->elements[element].next);
         }
         else
         {
-            sprintf(string, "ELEM_%lu["
-                                      "label=\" ELEMENT %lu\n"
-                                      "value: %g \n"
-                                      "next: %d \n"
-                                      "previous: %d\""
-                                      "]\n", 
-                            element, 
-                            element, 
-                            list->elements[element].value,
-                            list->elements[element].next,
-                            list->elements[element].previous);
-            WRITE_S();
+            fprintf(file,   "value: %g \n"
+                            "next: %d \n"
+                            "previous: %d\""
+                            "]\n", 
+                                list->elements[element].value,
+                                list->elements[element].next,
+                                list->elements[element].previous);
         }
     }
     
-    sprintf(string, "HEAD[]\n"
-                    "TAIL[]\n"
-                    "FREE[]\n");
-    WRITE_S();
+    fprintf(file, "HEAD[]\n"
+                  "TAIL[]\n"
+                  "FREE[]\n");
 
     return LIST_CORRECT;
 }
@@ -261,22 +236,13 @@ static ListErr WriteGraphArrows(List_t* list, FILE* file)
     if(!list) return LIST_NULL;
     if(!file) return LIST_FILE_ERROR;
 
-    char string[STRING_BUFFER_SIZE] = {};
-
-    sprintf(string, "HEAD->ELEM_%d[headport=\"n\"]\n", list->head);
-    WRITE_S();
-
-    sprintf(string, "TAIL->ELEM_%d[headport=\"n\"]\n", list->tail);
-    WRITE_S();
-
-    sprintf(string, "FREE->ELEM_%d[headport=\"n\", color=\"pink\"]\n", list->first_empty);
-    WRITE_S();
+    fprintf(file, "HEAD->ELEM_%d[headport=\"n\"]\n", list->elements[0].next);
+    fprintf(file, "TAIL->ELEM_%d[headport=\"n\"]\n", list->elements[0].previous);
+    fprintf(file, "FREE->ELEM_%d[headport=\"n\", color=" FREE_COLOR "]\n", list->first_empty);
 
     for(size_t element = 0; element < list->list_capacity-1; element++)
     {
-        sprintf(string, "ELEM_%lu->ELEM_%lu[color=\"white\"]\n", 
-                                                        element, element+1);
-        WRITE_S();
+        fprintf(file, "ELEM_%lu->ELEM_%lu[style=\"invis\"]\n", element, element+1);
     }
 
     for(size_t element = 0; element < list->list_capacity; element++)
@@ -284,29 +250,25 @@ static ListErr WriteGraphArrows(List_t* list, FILE* file)
         int next = list->elements[element].next;
         if(next >= 0)
         {
-            sprintf(string, "ELEM_%lu->ELEM_%d[color=\"red\", tailport=\"n\", headport=\"n\"]\n",
-                                                        element, next);
-            WRITE_S();
+            fprintf(file, "ELEM_%lu->ELEM_%d[color=" NEXT_COLOR ",tailport=\"n\", headport=\"n\"]\n"
+                                                                 , element, next);
         }
         else if(next < 0)
         {
-            sprintf(string, "ELEM_%lu->ELEM_%d[color=\"pink\", tailport=\"n\", headport=\"n\"]\n",
-                                                        element, -next);
-            WRITE_S();
+            fprintf(file, "ELEM_%lu->ELEM_%d[color=" FREE_COLOR ",tailport=\"n\", headport=\"n\"]\n"
+                                                                 , element, -next);
         }
 
         int prev = list->elements[element].previous;
         if(prev >= 0 && prev < (int)list->list_capacity)
         {
 
-            sprintf(string, "ELEM_%lu->ELEM_%d[color=\"blue\", tailport=\"s\", headport=\"s\"]\n", 
-                                                        element, abs(prev));
-            WRITE_S();
+            fprintf(file, "ELEM_%lu->ELEM_%d[color=" PREV_COLOR ",tailport=\"s\", headport=\"s\"]\n"
+                                                                 , element, abs(prev));
         }
     }
     
-    sprintf(string, "}");
-    WRITE_S();
+    fprintf(file, "}");
 
     return LIST_CORRECT;
 }

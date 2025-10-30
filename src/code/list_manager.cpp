@@ -21,27 +21,17 @@ ListErr ListInit(List_t* list)
     list->elements = (ListElement_t*)calloc(LIST_START_CAPACITY, sizeof(ListElement_t));
     if(!list->elements) return LIST_MEMORY_ERROR;
 
-    list->head = 0;
-    list->tail = 0;
-
     list->first_empty = 1;
 
-    
+    list->elements[0].value = SHIELD_VALUE;
+    list->elements[0].next = 0;
+    list->elements[0].previous = 0;
 
-    for(size_t element = 0; element < list->list_capacity; element++)
+    for(size_t element = 1; element < list->list_capacity; element++)
     {
-        if(element == 0)
-        {
-            list->elements[element].value = SHIELD_VALUE;
-            list->elements[element].next = 0;
-            list->elements[element].previous = 0;
-        }
-        else
-        {
-            list->elements[element].value = POISON;
-            list->elements[element].next = -((int)element + 1);
-            list->elements[element].previous = -1;
-        }
+        list->elements[element].value = POISON;
+        list->elements[element].next = -((int)element + 1);
+        list->elements[element].previous = -1;
     }
 
     FILE* file = fopen(LOGGER_FILENAME, "w+");
@@ -93,24 +83,10 @@ ListErr ListAddAfter(List_t* list, int index, double value)
     list->elements[added_index].previous = index;
     list->elements[added_index].next = list->elements[index].next;
 
-    if(list->elements[added_index].next != 0) 
-    {
-        list->elements[list->elements[added_index].next].previous = added_index;
-    }
-    if(index != 0)
-    {
-        list->elements[index].next = added_index;
-    }
-    
-    if(list->tail == index)
-    {
-        list->tail = added_index;
-    }
+    list->elements[list->elements[added_index].next].previous = added_index;
 
-    if(index == 0)
-    {
-        list->head = 1;
-    }
+    list->elements[index].next = added_index;
+    
 
     ListDump(list);
 
@@ -123,7 +99,7 @@ ListErr ListAddAfter(List_t* list, int index, double value)
 ListErr ListDel(List_t* list, int index)
 {
     if(!list)                               return LIST_NULL;
-    if(index < 0)                           return LIST_INCORRECT_INDEX;
+    if(index <= 0)                          return LIST_INCORRECT_INDEX;
     if(index > (int)list->list_capacity)    return LIST_INCORRECT_INDEX;
     if(list->elements[index].previous < 0)  return LIST_INCORRECT_INDEX;
 
@@ -131,15 +107,11 @@ ListErr ListDel(List_t* list, int index)
 
     ListElement_t* deleting_elem = &list->elements[index];
 
-    if(list->tail == index)
-    {
-        list->tail = deleting_elem->previous;
-    }
-
     if(deleting_elem->next > 0)
     {
         list->elements[deleting_elem->next].previous = deleting_elem->previous;
     }
+
     if(deleting_elem->previous > 0)
     {
         list->elements[deleting_elem->previous].next = deleting_elem->next;
@@ -182,13 +154,14 @@ static ListErr ReallocList(List_t* list)
     VERIFY(list);
 
     list->list_capacity *= LIST_MULTIPLIER_CAPACITY;
-    list->elements = (ListElement_t*)realloc(list->elements, 
+    ListElement_t* list_elem = (ListElement_t*)realloc(list->elements, 
                                                     list->list_capacity * sizeof(ListElement_t));
-    if(!list->elements)
+    if(!list_elem)
     {
         free(list->elements);
         return LIST_MEMORY_ERROR;
     }
+    list->elements = list_elem;
 
     for(int element = list->first_empty; element < (int)list->list_capacity; element++)
     {
@@ -249,14 +222,14 @@ ListErr ListVerify(List_t* list)
     if(list->elements[0].value != SHIELD_VALUE)
                             return LIST_SHEILD_DAMAGED;
 
-    if(list->head < 0 
-    || list->elements[list->head].previous < 0
-    || list->head >= (int)list->list_capacity) 
+    if(list->elements[0].next < 0 
+    || list->elements[list->elements[0].next].previous < 0
+    || list->elements[0].next >= (int)list->list_capacity) 
                             return LIST_INVALID_HEAD;
 
-    if(list->tail < 0 
-    || list->elements[list->tail].previous < 0
-    || list->tail >= (int)list->list_capacity) 
+    if(list->elements[0].previous < 0 
+    || list->elements[list->elements[0].previous].previous < 0
+    || list->elements[0].previous>= (int)list->list_capacity) 
                             return LIST_INVALID_TAIL;
 
     if(list->first_empty < 0)
@@ -265,6 +238,54 @@ ListErr ListVerify(List_t* list)
     if(list->first_empty < (int)list->list_capacity
     && list->elements[list->first_empty].previous >= 0)
                             return LIST_INVALID_TAIL;
+
+    return LIST_CORRECT;
+}
+
+int ListHead(List_t* list)
+{
+    if(!list) return 0;
+
+    return list->elements[0].next;
+}
+
+int ListTail(List_t* list)
+{
+    if(!list) return 0;
+
+    return list->elements[0].previous;
+}
+
+ListErr ListAddFront(List_t* list, double value)
+{
+    if(!list) return LIST_NULL;
+
+    return ListAddAfter(list, 0, value);
+}
+ListErr ListAddBack(List_t* list, double value)
+{
+    if(!list) return LIST_NULL;
+
+    return ListAddAfter(list, ListTail(list), value);
+}
+double  ListGetOnIndex(List_t* list, int index)
+{
+    if(!list                               
+    || index <= 0                      
+    || index > (int)list->list_capacity
+    || list->elements[index].previous < 0)  return 0;
+
+    return list->elements[index].value;
+}
+ListErr ListSetOnIndex(List_t* list, int index, double value)
+{
+    if(!list)       return LIST_NULL;
+    if(index <= 0 
+    || index > (int)list->list_capacity 
+    || list->elements[index].previous < 0)                          
+                    return LIST_INCORRECT_INDEX;
+
+    list->elements[index].value = value;
 
     return LIST_CORRECT;
 }
