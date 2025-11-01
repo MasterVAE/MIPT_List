@@ -7,8 +7,6 @@
 #include "list_manager.h"
 #include "list_logger.h"
 
-#define WRITE(string) fwrite(string, strlen(string), 1, file);
-
 static ListErr ConsoleDump(List_t* list);
 static ListErr HTMLDump(List_t* list, FILE* file);
 static ListErr HTLMWriteInfo(List_t* list, FILE* file);
@@ -16,7 +14,7 @@ static ListErr WriteGraph(List_t* list, FILE* file);
 static ListErr WriteGraphNodes(List_t* list, FILE* file);
 static ListErr WriteGraphArrows(List_t* list, FILE* file);
 
-const char* dot_file_name = "files/graph.dot";
+const char* const dot_file_name = "files/graph.dot";
 const int STRING_BUFFER_SIZE = 200;
 
 int current_dump = 1;
@@ -43,7 +41,7 @@ static ListErr ConsoleDump(List_t* list)
     if(!list) return LIST_NULL;
 
     printf("========== LIST DUMP START ============\n\n");
-
+ 
     printf("HEAD:      %4d\n",   list->elements[0].next);
     printf("TAIL:      %4d\n",   list->elements[0].previous);
     printf("LIST SIZE: %4lu\n",  list->list_capacity);
@@ -74,13 +72,13 @@ ListErr StartBaseHTML(FILE* file)
 {
     if(!file) return LIST_FILE_ERROR;
     
-    WRITE(  "<!DOCTYPE html>\n"
-            "<head>\n"
-            "<title>List log</title>\n"
-            "<link href=\"../html/main.css\" type=\"text/css\" rel=\"stylesheet\" />\n"
-            "</head>\n"
-            "<body class=\"main\">"
-            "<hdr>LIST LOGGER</hdr>\n");
+    fprintf(file, "<!DOCTYPE html>\n"
+                  "<head>\n"
+                  "<title>List log</title>\n"
+                  "<link href=\"../html/main.css\" type=\"text/css\" rel=\"stylesheet\" />\n"
+                  "</head>\n"
+                  "<body class=\"main\">"
+                  "<hdr>LIST LOGGER</hdr>\n");
 
     return LIST_CORRECT;
 }
@@ -90,8 +88,8 @@ ListErr EndBaseHTML(FILE* file)
 {
     if(!file) return LIST_FILE_ERROR;
     
-    WRITE("</body>\n"
-          "</html>\n");
+    fprintf(file, "</body>\n"
+                  "</html>\n");
 
     return LIST_CORRECT;
 }
@@ -102,7 +100,6 @@ static ListErr HTLMWriteInfo(List_t* list, FILE* file)
     if(!file) return LIST_FILE_ERROR;
 
     fprintf(file, "<h2>LOG №%d</h2>\n", current_dump);
-
     fprintf(file, "<p>LIST CAPACITY: %4lu</p>\n",  list->list_capacity);
     fprintf(file, "<p>NEXT EMPTY: %4d</p>\n\n", list->first_empty);
     fprintf(file, "<ul>");
@@ -187,6 +184,7 @@ static ListErr WriteGraphNodes(List_t* list, FILE* file)
     if(!file) return LIST_FILE_ERROR;
 
     fprintf(file, "ELEM_0[pos=\"0,0!\"label=\" ELEMENT 0\n");
+    
     if(list->elements[0].value == SHIELD_VALUE) 
     {
         fprintf(file,"value: SHIELD \n");
@@ -195,9 +193,9 @@ static ListErr WriteGraphNodes(List_t* list, FILE* file)
     {
         fprintf(file, "value: %g \n", list->elements[0].value);
     }
-    fprintf(file,   "head: %d \n tail: %d\"]\n", 
-                        list->elements[0].next,
-                        list->elements[0].previous);
+
+    fprintf(file, "head: %d \n ", list->elements[0].next);
+    fprintf(file, "tail: %d\"]\n", list->elements[0].previous);
 
     for(size_t element = 1; element < list->list_capacity; element++)
     {
@@ -213,13 +211,9 @@ static ListErr WriteGraphNodes(List_t* list, FILE* file)
         }
         else
         {
-            fprintf(file,   "value: %g \n"
-                            "next: %d \n"
-                            "previous: %d\""
-                            "]\n", 
-                                list->elements[element].value,
-                                list->elements[element].next,
-                                list->elements[element].previous);
+            fprintf(file, "value: %g \n",           list->elements[element].value);
+            fprintf(file, "next: %d \n",            list->elements[element].next);
+            fprintf(file, "previous: %d\"\n]\n",    list->elements[element].previous);                        
         }
     }
     

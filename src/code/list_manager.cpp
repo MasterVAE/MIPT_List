@@ -87,7 +87,6 @@ ListErr ListAddAfter(List_t* list, int index, double value)
 
     list->elements[index].next = added_index;
     
-
     ListDump(list);
 
     VERIFY(list);
@@ -131,7 +130,7 @@ ListErr ListDel(List_t* list, int index)
 int ListNext(List_t* list, int index)
 {
     if(!list                               
-    || index <= 0                      
+    || index < 0                      
     || index > (int)list->list_capacity
     || list->elements[index].previous < 0)  return 0;
 
@@ -141,7 +140,7 @@ int ListNext(List_t* list, int index)
 int ListPrev(List_t* list, int index)
 {
     if(!list                               
-    || index <= 0                      
+    || index < 0                      
     || index > (int)list->list_capacity
     || list->elements[index].previous < 0)  return 0;
 
@@ -153,22 +152,38 @@ static ListErr ReallocList(List_t* list)
 {
     VERIFY(list);
 
-    list->list_capacity *= LIST_MULTIPLIER_CAPACITY;
-    ListElement_t* list_elem = (ListElement_t*)realloc(list->elements, 
-                                                    list->list_capacity * sizeof(ListElement_t));
+    ListElement_t* list_elem = (ListElement_t*)calloc(list->list_capacity * LIST_MULTIPLIER_CAPACITY, sizeof(ListElement_t));
     if(!list_elem)
     {
         free(list->elements);
         return LIST_MEMORY_ERROR;
     }
-    list->elements = list_elem;
 
-    for(int element = list->first_empty; element < (int)list->list_capacity; element++)
+    int index = 0;
+    int absoluteIndex = 0;
+    do
     {
-        list->elements[element].value = POISON;
-        list->elements[element].next = -((int)element + 1);
-        list->elements[element].previous = -1;
+        list_elem[absoluteIndex].value = list->elements[index].value;
+        list_elem[absoluteIndex].next = list->elements[index].next == 0 ? 0 : absoluteIndex + 1;
+        list_elem[absoluteIndex].previous = index == 0 ? 
+                                                (int)list->list_capacity - 1 : absoluteIndex - 1;
+        absoluteIndex++;
+        index = ListNext(list, index);
+        printf("INDEX %d\n", index);
+    } while (index != 0);
+    
+    list->first_empty = absoluteIndex;
+    for(int element = list->first_empty; element < (int)list->list_capacity  
+                                                            * LIST_MULTIPLIER_CAPACITY; element++)
+    {
+        list_elem[element].value = POISON;
+        list_elem[element].next = -((int)element + 1);
+        list_elem[element].previous = -1;
     }
+
+    list->list_capacity *= LIST_MULTIPLIER_CAPACITY;
+    free(list->elements);
+    list->elements = list_elem;
 
     VERIFY(list);
 
