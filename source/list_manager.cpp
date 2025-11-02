@@ -9,7 +9,7 @@
 
 static ListErr ReallocList(List_t* list, ReallocType type);
 
-const char* LOGGER_FILENAME = "files/logger.html";
+static const char* const LOGGER_FILENAME = "files/logger.html";
 const int POISON_PREVIOUS = -1;
 
 // ИНИЦИАЛИЗАЦИЯ СПИСКА
