@@ -1,5 +1,4 @@
 build/
-obj/
 files/
 .vscode/
 graph.dot

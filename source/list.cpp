@@ -1,7 +1,7 @@
 #include <stdio.h>                                    
 
-#include "list_manager.h"
-#include "list_logger.h"
+#include "../include/list_manager.h"
+#include "../include/list_logger.h"
 
 #define CHECK_MAIN(errcode) \
 if(errcode != LIST_CORRECT)\
@@ -36,6 +36,9 @@ int main()
     CHECK_MAIN(err);
 
     err = ListDel(&main_list, 11);
+    CHECK_MAIN(err);
+    
+    err = ListDel(&main_list, 4);
     CHECK_MAIN(err);
 
     // DECONSTRUCT

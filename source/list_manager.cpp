@@ -1,16 +1,17 @@
-
 #include <stdio.h>                                                                                 
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
 
-#include "list_manager.h"
-#include "list_logger.h"
+#include "../include/list_manager.h"
+#include "../include/list_logger.h"
 
-static ListErr ReallocList(List_t* list);
+static ListErr ReallocListUp(List_t* list);
+static ListErr ReallocListDown(List_t* list);
 
 const char* LOGGER_FILENAME = "files/logger.html";
+const int POISON_PREVIOUS = -1;
 
 // ИНИЦИАЛИЗАЦИЯ СПИСКА
 ListErr ListInit(List_t* list)
@@ -31,7 +32,7 @@ ListErr ListInit(List_t* list)
     {
         list->elements[element].value = POISON;
         list->elements[element].next = -((int)element + 1);
-        list->elements[element].previous = -1;
+        list->elements[element].previous = POISON_PREVIOUS;
     }
 
     FILE* file = fopen(LOGGER_FILENAME, "w+");
@@ -39,6 +40,7 @@ ListErr ListInit(List_t* list)
     StartBaseHTML(file);
 
     list->log_file = file;
+    list->list_size = 1;
 
     VERIFY(list);
 
@@ -61,7 +63,7 @@ void ListDestroy(List_t* list)
 }
 
 // ВСТАВКА ПОСЛЕ
-ListErr ListAddAfter(List_t* list, int index, double value)
+ListErr ListAddAfter(List_t* list, int index, list_type value)
 {
     if(!list)       return LIST_NULL;
     if(index < 0 
@@ -71,9 +73,9 @@ ListErr ListAddAfter(List_t* list, int index, double value)
 
     VERIFY(list);
 
-    if(list->first_empty >= (int)list->list_capacity)
+    if(list->list_size >= list->list_capacity)
     {
-        ReallocList(list);
+        ReallocListUp(list);
     }
 
     int added_index = list->first_empty;
@@ -86,6 +88,8 @@ ListErr ListAddAfter(List_t* list, int index, double value)
     list->elements[list->elements[added_index].next].previous = added_index;
 
     list->elements[index].next = added_index;
+
+    list->list_size++;
     
     ListDump(list);
 
@@ -98,9 +102,9 @@ ListErr ListAddAfter(List_t* list, int index, double value)
 ListErr ListDel(List_t* list, int index)
 {
     if(!list)                               return LIST_NULL;
-    if(index <= 0)                          return LIST_INCORRECT_INDEX;
-    if(index > (int)list->list_capacity)    return LIST_INCORRECT_INDEX;
-    if(list->elements[index].previous < 0)  return LIST_INCORRECT_INDEX;
+    if(index <= 0  
+    || index > (int)list->list_capacity
+    || list->elements[index].previous < 0)  return LIST_INCORRECT_INDEX;
 
     VERIFY(list);
 
@@ -117,8 +121,16 @@ ListErr ListDel(List_t* list, int index)
     }    
     
     list->elements[index].next = -list->first_empty;
-    list->elements[index].previous = -1;
+    list->elements[index].previous = POISON_PREVIOUS;
+    list->elements[index].previous = POISON;
     list->first_empty = index;
+
+    list->list_size--;
+
+    if(list->list_size <= list->list_capacity / LIST_MULTIPLIER_CAPACITY)
+    {
+        ReallocListDown(list);
+    }
 
     ListDump(list);
 
@@ -148,11 +160,12 @@ int ListPrev(List_t* list, int index)
 }
 
 // УДЛИНЕНИЕ СПИСКА
-static ListErr ReallocList(List_t* list)
+static ListErr ReallocListUp(List_t* list)
 {
     VERIFY(list);
 
-    ListElement_t* list_elem = (ListElement_t*)calloc(list->list_capacity * LIST_MULTIPLIER_CAPACITY, sizeof(ListElement_t));
+    ListElement_t* list_elem = (ListElement_t*)calloc(list->list_capacity 
+                                                * LIST_MULTIPLIER_CAPACITY, sizeof(ListElement_t));
     if(!list_elem)
     {
         free(list->elements);
@@ -160,28 +173,72 @@ static ListErr ReallocList(List_t* list)
     }
 
     int index = 0;
-    int absoluteIndex = 0;
+    int absolute_index = 0;
     do
     {
-        list_elem[absoluteIndex].value = list->elements[index].value;
-        list_elem[absoluteIndex].next = list->elements[index].next == 0 ? 0 : absoluteIndex + 1;
-        list_elem[absoluteIndex].previous = index == 0 ? 
-                                                (int)list->list_capacity - 1 : absoluteIndex - 1;
-        absoluteIndex++;
+        list_elem[absolute_index].value = list->elements[index].value;
+        list_elem[absolute_index].next = list->elements[index].next == 0 ? 0 : absolute_index + 1;
+        list_elem[absolute_index].previous = index == 0 ? 
+                                                (int)list->list_capacity - 1 : absolute_index - 1;
+        absolute_index++;
         index = ListNext(list, index);
         printf("INDEX %d\n", index);
     } while (index != 0);
     
-    list->first_empty = absoluteIndex;
-    for(int element = list->first_empty; element < (int)list->list_capacity  
-                                                            * LIST_MULTIPLIER_CAPACITY; element++)
+    list->first_empty = absolute_index;
+    for(int element = list->first_empty; element < (int)(list->list_capacity  
+                                                            * LIST_MULTIPLIER_CAPACITY); element++)
     {
         list_elem[element].value = POISON;
         list_elem[element].next = -((int)element + 1);
-        list_elem[element].previous = -1;
+        list_elem[element].previous = POISON_PREVIOUS;
     }
 
     list->list_capacity *= LIST_MULTIPLIER_CAPACITY;
+    free(list->elements);
+    list->elements = list_elem;
+
+    VERIFY(list);
+
+    return LIST_CORRECT;
+}
+
+// УКОРАЧИВАНИЕ СПИСКА
+static ListErr ReallocListDown(List_t* list)
+{
+    VERIFY(list);
+
+    ListElement_t* list_elem = (ListElement_t*)calloc(list->list_capacity 
+                                                / LIST_MULTIPLIER_CAPACITY, sizeof(ListElement_t));
+    if(!list_elem)
+    {
+        free(list->elements);
+        return LIST_MEMORY_ERROR;
+    }
+
+    int index = 0;
+    int absolute_index = 0;
+    do
+    {
+        list_elem[absolute_index].value = list->elements[index].value;
+        list_elem[absolute_index].next = list->elements[index].next == 0 ? 0 : absolute_index + 1;
+        list_elem[absolute_index].previous = index == 0 ? 
+                                                (int)list->list_size - 1 : absolute_index - 1;
+        absolute_index++;
+        index = ListNext(list, index);
+        printf("INDEX %d\n", index);
+    } while (index != 0);
+    
+    list->first_empty = absolute_index;
+    for(int element = list->first_empty; element < (int)(list->list_capacity  
+                                                            / LIST_MULTIPLIER_CAPACITY); element++)
+    {
+        list_elem[element].value = POISON;
+        list_elem[element].next = -((int)element + 1);
+        list_elem[element].previous = POISON_PREVIOUS;
+    }
+
+    list->list_capacity /= LIST_MULTIPLIER_CAPACITY;
     free(list->elements);
     list->elements = list_elem;
 
@@ -234,7 +291,7 @@ ListErr ListVerify(List_t* list)
 
     if(!list->elements)     return LIST_MEMORY_ERROR;
 
-    if(list->elements[0].value != SHIELD_VALUE)
+    if(!list_typeEquality(list->elements[0].value, SHIELD_VALUE))
                             return LIST_SHEILD_DAMAGED;
 
     if(list->elements[0].next < 0 
@@ -271,19 +328,19 @@ int ListTail(List_t* list)
     return list->elements[0].previous;
 }
 
-ListErr ListAddFront(List_t* list, double value)
+ListErr ListAddFront(List_t* list, list_type value)
 {
     if(!list) return LIST_NULL;
 
     return ListAddAfter(list, 0, value);
 }
-ListErr ListAddBack(List_t* list, double value)
+ListErr ListAddBack(List_t* list, list_type value)
 {
     if(!list) return LIST_NULL;
 
     return ListAddAfter(list, ListTail(list), value);
 }
-double  ListGetOnIndex(List_t* list, int index)
+list_type  ListGetOnIndex(List_t* list, int index)
 {
     if(!list                               
     || index <= 0                      
@@ -292,7 +349,7 @@ double  ListGetOnIndex(List_t* list, int index)
 
     return list->elements[index].value;
 }
-ListErr ListSetOnIndex(List_t* list, int index, double value)
+ListErr ListSetOnIndex(List_t* list, int index, list_type value)
 {
     if(!list)       return LIST_NULL;
     if(index <= 0 
@@ -303,4 +360,12 @@ ListErr ListSetOnIndex(List_t* list, int index, double value)
     list->elements[index].value = value;
 
     return LIST_CORRECT;
+}
+
+int list_typeEquality(list_type a, list_type b)
+{
+    list_type c = a - b;
+
+    if(c < 0.00001f && c > -0.00001f) return 1;
+    return 0;
 }
