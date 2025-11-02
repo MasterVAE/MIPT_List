@@ -5,12 +5,12 @@
 #include "../include/list_manager.h"
 #include "../include/list_logger.h"
 
-#define CHECK_MAIN(errcode) \
-if(errcode != LIST_CORRECT)\
-{\
-    PrintError(errcode);\
-    ListDestroy(main_list);\
-    return errcode;\
+#define CHECK_MAIN(errcode)         \
+if(errcode != LIST_CORRECT)         \
+{                                   \
+    PrintError(errcode);            \
+    ListDestroy(main_list);         \
+    return errcode;                 \
 }
 
 int main()

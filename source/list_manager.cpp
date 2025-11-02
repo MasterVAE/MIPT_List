@@ -148,24 +148,24 @@ ListErr ListDel(List_t* list, int index)
     return LIST_CORRECT;
 }
 
-int ListNext(List_t* list, int index)
+size_t ListNext(List_t* list, int index)
 {
     if(!list                               
     || index < 0                      
     || index > (int)list->list_capacity
     || list->elements[index].previous < 0)  return 0;
 
-    return list->elements[index].next;
+    return (size_t)list->elements[index].next;
 }
 
-int ListPrev(List_t* list, int index)
+size_t ListPrev(List_t* list, int index)
 {
     if(!list                               
     || index < 0                      
     || index > (int)list->list_capacity
     || list->elements[index].previous < 0)  return 0;
 
-    return list->elements[index].previous;
+    return (size_t)list->elements[index].previous;
 }
 
 // ИЗМЕНЕНИЕ ДЛИНЫ СПИСКА
@@ -281,30 +281,36 @@ ListErr ListVerify(List_t* list)
                             return LIST_INVALID_TAIL;
 
     size_t real_size = 1;
-    for(int elem_index = list->elements[0].next; elem_index > 0;
-                                    elem_index = list->elements[elem_index].next) real_size++;
-    
+    int elem_index = list->elements[0].next;
+    while(elem_index > 0 && real_size < list->list_size + 1)
+    {
+        elem_index = list->elements[elem_index].next;
+        real_size++;
+    }
     if(real_size != list->list_size) 
                             return LIST_INVALID_SIZE;
 
-    real_size = 1;    
-    for(int elem_index = list->elements[0].previous; elem_index > 0;
-                                    elem_index = list->elements[elem_index].previous) real_size++;
-    
+    real_size = 1;
+    elem_index = list->elements[0].previous;
+    while(elem_index > 0 && real_size < list->list_size + 1)
+    {
+        elem_index = list->elements[elem_index].previous;
+        real_size++;
+    }
     if(real_size != list->list_size) 
                             return LIST_INVALID_SIZE;
 
     return LIST_CORRECT;
 }
 
-int ListHead(List_t* list)
+size_t ListHead(List_t* list)
 {
     if(!list) return 0;
 
     return list->elements[0].next;
 }
 
-int ListTail(List_t* list)
+size_t ListTail(List_t* list)
 {
     if(!list) return 0;
 
