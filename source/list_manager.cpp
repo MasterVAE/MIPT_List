@@ -323,13 +323,15 @@ ListErr ListAddFront(List_t* list, list_type value)
 
     return ListAddAfter(list, 0, value);
 }
+
 ListErr ListAddBack(List_t* list, list_type value)
 {
     if(!list) return LIST_NULL;
 
     return ListAddAfter(list, ListTail(list), value);
 }
-list_type  ListGetOnIndex(List_t* list, int index)
+
+list_type ListGetOnIndex(List_t* list, int index)
 {
     if(!list                               
     || index <= 0                      
@@ -338,6 +340,7 @@ list_type  ListGetOnIndex(List_t* list, int index)
 
     return list->elements[index].value;
 }
+
 ListErr ListSetOnIndex(List_t* list, int index, list_type value)
 {
     if(!list)       return LIST_NULL;

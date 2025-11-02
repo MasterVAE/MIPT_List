@@ -41,11 +41,9 @@ int main()
     CHECK_MAIN(err);
 
     // BREAK LIST
-    // char* adress = (char*)main_list;
-    // printf("ADRESS: %p\n", adress);
-    // memset(adress + 3, 8, 8);
+    main_list->elements[3].previous = -7;
 
-    VERIFY(main_list);
+    ListVerify(main_list);
 
     ListDump(main_list);
     // DECONSTRUCT
