@@ -45,12 +45,13 @@ ListErr     ListSetOnIndex  (List_t* list, int index, list_type value);
 ListErr     ListInit        (List_t* list);
 void        ListDestroy     (List_t* list);
 ListErr     ListAddAfter    (List_t* list, int index, list_type value);
+ListErr     ListAddBefore   (List_t* list, int index, list_type value);
 ListErr     ListDel         (List_t* list, int index);
 int         ListNext        (List_t* list, int index);
 int         ListPrev        (List_t* list, int index);
 ListErr     ListVerify      (List_t* list);
 void PrintError(ListErr errcode);
-int list_typeEquality(list_type a, list_type b);
+int ValueEquality(list_type a, list_type b);
 
 const size_t LIST_START_CAPACITY = 5;
 const size_t LIST_MULTIPLIER_CAPACITY = 2;

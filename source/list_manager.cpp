@@ -75,7 +75,8 @@ ListErr ListAddAfter(List_t* list, int index, list_type value)
 
     if(list->list_size >= list->list_capacity)
     {
-        ReallocListUp(list);
+        ListErr err = ReallocListUp(list);
+        CHECK(err);
     }
 
     int added_index = list->first_empty;
@@ -90,12 +91,22 @@ ListErr ListAddAfter(List_t* list, int index, list_type value)
     list->elements[index].next = added_index;
 
     list->list_size++;
-    
-    ListDump(list);
 
     VERIFY(list);
 
     return LIST_CORRECT;
+}
+
+// ВСТАВКА ПЕРЕД
+ListErr ListAddBefore(List_t* list, int index, list_type value)
+{
+    if(!list)       return LIST_NULL;
+    if(index < 0 
+    || index > (int)list->list_capacity 
+    || list->elements[index].previous < 0)                          
+                    return LIST_INCORRECT_INDEX;
+
+    return ListAddAfter(list, list->elements[index].previous, value);
 }
 
 // УДАЛЕНИЕ ЭЛЕМЕНТА
@@ -122,17 +133,16 @@ ListErr ListDel(List_t* list, int index)
     
     list->elements[index].next = -list->first_empty;
     list->elements[index].previous = POISON_PREVIOUS;
-    list->elements[index].previous = POISON;
+    list->elements[index].value = POISON;
     list->first_empty = index;
 
     list->list_size--;
 
     if(list->list_size <= list->list_capacity / LIST_MULTIPLIER_CAPACITY)
     {
-        ReallocListDown(list);
+        ListErr err = ReallocListDown(list);
+        CHECK(err);
     }
-
-    ListDump(list);
 
     VERIFY(list);
 
@@ -164,8 +174,9 @@ static ListErr ReallocListUp(List_t* list)
 {
     VERIFY(list);
 
-    ListElement_t* list_elem = (ListElement_t*)calloc(list->list_capacity 
-                                                * LIST_MULTIPLIER_CAPACITY, sizeof(ListElement_t));
+    list->list_capacity *= LIST_MULTIPLIER_CAPACITY;
+
+    ListElement_t* list_elem = (ListElement_t*)calloc(list->list_capacity, sizeof(ListElement_t));
     if(!list_elem)
     {
         free(list->elements);
@@ -179,22 +190,19 @@ static ListErr ReallocListUp(List_t* list)
         list_elem[absolute_index].value = list->elements[index].value;
         list_elem[absolute_index].next = list->elements[index].next == 0 ? 0 : absolute_index + 1;
         list_elem[absolute_index].previous = index == 0 ? 
-                                                (int)list->list_capacity - 1 : absolute_index - 1;
+                                                (int)list->list_size - 1 : absolute_index - 1;
         absolute_index++;
         index = ListNext(list, index);
-        printf("INDEX %d\n", index);
     } while (index != 0);
     
     list->first_empty = absolute_index;
-    for(int element = list->first_empty; element < (int)(list->list_capacity  
-                                                            * LIST_MULTIPLIER_CAPACITY); element++)
+    for(int element = list->first_empty; element < (int)list->list_capacity; element++)
     {
         list_elem[element].value = POISON;
         list_elem[element].next = -((int)element + 1);
         list_elem[element].previous = POISON_PREVIOUS;
     }
 
-    list->list_capacity *= LIST_MULTIPLIER_CAPACITY;
     free(list->elements);
     list->elements = list_elem;
 
@@ -226,7 +234,6 @@ static ListErr ReallocListDown(List_t* list)
                                                 (int)list->list_size - 1 : absolute_index - 1;
         absolute_index++;
         index = ListNext(list, index);
-        printf("INDEX %d\n", index);
     } while (index != 0);
     
     list->first_empty = absolute_index;
@@ -291,7 +298,7 @@ ListErr ListVerify(List_t* list)
 
     if(!list->elements)     return LIST_MEMORY_ERROR;
 
-    if(!list_typeEquality(list->elements[0].value, SHIELD_VALUE))
+    if(!ValueEquality(list->elements[0].value, SHIELD_VALUE))
                             return LIST_SHEILD_DAMAGED;
 
     if(list->elements[0].next < 0 
@@ -362,7 +369,7 @@ ListErr ListSetOnIndex(List_t* list, int index, list_type value)
     return LIST_CORRECT;
 }
 
-int list_typeEquality(list_type a, list_type b)
+int ValueEquality(list_type a, list_type b)
 {
     list_type c = a - b;
 

@@ -157,8 +157,6 @@ static ListErr WriteGraph(List_t* list, FILE* file)
     if(!list) return LIST_NULL;
     if(!file) return LIST_FILE_ERROR;
 
-
-
     fprintf(file,   "digraph\n"
                     "{\n"
                     "bgcolor=\"#111111\""
@@ -187,7 +185,7 @@ static ListErr WriteGraphNodes(List_t* list, FILE* file)
 
     fprintf(file, "ELEM_0[pos=\"0,0!\"label=\" ELEMENT 0\n");
     
-    if(list_typeEquality(list->elements[0].value, SHIELD_VALUE)) 
+    if(ValueEquality(list->elements[0].value, SHIELD_VALUE)) 
     {
         fprintf(file,"value: SHIELD \n");
     }
@@ -204,7 +202,7 @@ static ListErr WriteGraphNodes(List_t* list, FILE* file)
         fprintf(file,   "ELEM_%lu[pos=\"%d,0!\", label=\" ELEMENT %lu\n", 
                             elem_index, (int)elem_index*3, elem_index);
 
-        if(list_typeEquality(list->elements[elem_index].value, POISON))
+        if(ValueEquality(list->elements[elem_index].value, POISON))
         {
             fprintf(file,   "value: POISON \n"
                             "next: %d \n\""

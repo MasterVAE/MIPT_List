@@ -1,4 +1,6 @@
-#include <stdio.h>                                    
+#include <stdio.h>      
+#include <stdlib.h>
+#include <string.h>                              
 
 #include "../include/list_manager.h"
 #include "../include/list_logger.h"
@@ -40,6 +42,11 @@ int main()
     
     err = ListDel(&main_list, 4);
     CHECK_MAIN(err);
+
+    // BREAK LIST
+    memset(&main_list + 5, 10, -3);
+
+    VERIFY(&main_list);
 
     // DECONSTRUCT
     ListDestroy(&main_list);
