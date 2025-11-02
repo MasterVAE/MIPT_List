@@ -7,8 +7,7 @@
 #include "../include/list_manager.h"
 #include "../include/list_logger.h"
 
-static ListErr ReallocListUp(List_t* list);
-static ListErr ReallocListDown(List_t* list);
+static ListErr ReallocList(List_t* list, ReallocType type);
 
 const char* LOGGER_FILENAME = "files/logger.html";
 const int POISON_PREVIOUS = -1;
@@ -59,7 +58,7 @@ void ListDestroy(List_t* list)
     {
         fclose(list->log_file);
     }
-    memset(list, 0, sizeof(List_t));
+    free(list);
 }
 
 // ВСТАВКА ПОСЛЕ
@@ -75,7 +74,7 @@ ListErr ListAddAfter(List_t* list, int index, list_type value)
 
     if(list->list_size >= list->list_capacity)
     {
-        ListErr err = ReallocListUp(list);
+        ListErr err = ReallocList(list, REALLOC_UP);
         CHECK(err);
     }
 
@@ -140,7 +139,7 @@ ListErr ListDel(List_t* list, int index)
 
     if(list->list_size <= list->list_capacity / LIST_MULTIPLIER_CAPACITY)
     {
-        ListErr err = ReallocListDown(list);
+        ListErr err = ReallocList(list, REALLOC_DOWN);
         CHECK(err);
     }
 
@@ -169,12 +168,13 @@ int ListPrev(List_t* list, int index)
     return list->elements[index].previous;
 }
 
-// УДЛИНЕНИЕ СПИСКА
-static ListErr ReallocListUp(List_t* list)
+// ИЗМЕНЕНИЕ ДЛИНЫ СПИСКА
+static ListErr ReallocList(List_t* list, ReallocType type)
 {
     VERIFY(list);
 
-    list->list_capacity *= LIST_MULTIPLIER_CAPACITY;
+    if(type == REALLOC_UP)  list->list_capacity *= LIST_MULTIPLIER_CAPACITY;
+    else  list->list_capacity /= LIST_MULTIPLIER_CAPACITY;
 
     ListElement_t* list_elem = (ListElement_t*)calloc(list->list_capacity, sizeof(ListElement_t));
     if(!list_elem)
@@ -203,49 +203,6 @@ static ListErr ReallocListUp(List_t* list)
         list_elem[element].previous = POISON_PREVIOUS;
     }
 
-    free(list->elements);
-    list->elements = list_elem;
-
-    VERIFY(list);
-
-    return LIST_CORRECT;
-}
-
-// УКОРАЧИВАНИЕ СПИСКА
-static ListErr ReallocListDown(List_t* list)
-{
-    VERIFY(list);
-
-    ListElement_t* list_elem = (ListElement_t*)calloc(list->list_capacity 
-                                                / LIST_MULTIPLIER_CAPACITY, sizeof(ListElement_t));
-    if(!list_elem)
-    {
-        free(list->elements);
-        return LIST_MEMORY_ERROR;
-    }
-
-    int index = 0;
-    int absolute_index = 0;
-    do
-    {
-        list_elem[absolute_index].value = list->elements[index].value;
-        list_elem[absolute_index].next = list->elements[index].next == 0 ? 0 : absolute_index + 1;
-        list_elem[absolute_index].previous = index == 0 ? 
-                                                (int)list->list_size - 1 : absolute_index - 1;
-        absolute_index++;
-        index = ListNext(list, index);
-    } while (index != 0);
-    
-    list->first_empty = absolute_index;
-    for(int element = list->first_empty; element < (int)(list->list_capacity  
-                                                            / LIST_MULTIPLIER_CAPACITY); element++)
-    {
-        list_elem[element].value = POISON;
-        list_elem[element].next = -((int)element + 1);
-        list_elem[element].previous = POISON_PREVIOUS;
-    }
-
-    list->list_capacity /= LIST_MULTIPLIER_CAPACITY;
     free(list->elements);
     list->elements = list_elem;
 
@@ -283,6 +240,9 @@ void PrintError(ListErr errcode)
         case LIST_SHEILD_DAMAGED:
             fprintf(stderr, "ERROR: shield damaged\n");
             break;
+        case LIST_INVALID_SIZE:
+            fprintf(stderr, "ERROR: invalid size\n");
+            break;
         case LIST_CORRECT:
             fprintf(stderr, "CORRECT\n");
             break;
@@ -297,6 +257,8 @@ ListErr ListVerify(List_t* list)
     if(!list)               return LIST_NULL;
 
     if(!list->elements)     return LIST_MEMORY_ERROR;
+
+    if(list->list_size > list->list_capacity)     return LIST_MEMORY_ERROR;
 
     if(!ValueEquality(list->elements[0].value, SHIELD_VALUE))
                             return LIST_SHEILD_DAMAGED;
@@ -317,6 +279,20 @@ ListErr ListVerify(List_t* list)
     if(list->first_empty < (int)list->list_capacity
     && list->elements[list->first_empty].previous >= 0)
                             return LIST_INVALID_TAIL;
+
+    size_t real_size = 1;
+    for(int elem_index = list->elements[0].next; elem_index > 0;
+                                    elem_index = list->elements[elem_index].next) real_size++;
+    
+    if(real_size != list->list_size) 
+                            return LIST_INVALID_SIZE;
+
+    real_size = 1;    
+    for(int elem_index = list->elements[0].previous; elem_index > 0;
+                                    elem_index = list->elements[elem_index].previous) real_size++;
+    
+    if(real_size != list->list_size) 
+                            return LIST_INVALID_SIZE;
 
     return LIST_CORRECT;
 }

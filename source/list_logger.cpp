@@ -53,9 +53,10 @@ static ListErr ConsoleDump(List_t* list)
     }
 
     printf("PRINTING: \n");
-    for(int i = list->elements[0].next; i > 0; i = list->elements[i].next)
+    for(int elem_index = list->elements[0].next; elem_index > 0;
+                                                elem_index = list->elements[elem_index].next)
     {
-        printf("%g|", list->elements[i].value);
+        printf("%g|", list->elements[elem_index].value);
     }
 
     printf("\n\n========== LIST DUMP END   ============\n\n");
@@ -95,7 +96,7 @@ static ListErr HTMLWriteInfo(List_t* list, FILE* file)
     if(!list) return LIST_NULL;
     if(!file) return LIST_FILE_ERROR;
 
-    static int current_dump = 0;
+    static int current_dump = 1;
 
     fprintf(file, "<h2>LOG №%d</h2>\n", current_dump++);
     fprintf(file, "<p>LIST CAPACITY: %4lu</p>\n",  list->list_capacity);
@@ -261,7 +262,7 @@ static ListErr WriteGraphArrows(List_t* list, FILE* file)
                                                                  , elem_index, abs(prev));
         }
     }
-    
+
     fprintf(file, "}");
 
     return LIST_CORRECT;

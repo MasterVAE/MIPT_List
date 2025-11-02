@@ -3,7 +3,6 @@
 
 typedef double list_type;
 
-
 enum ListErr
 {
     LIST_CORRECT,
@@ -14,7 +13,14 @@ enum ListErr
     LIST_INVALID_HEAD,
     LIST_INVALID_TAIL,
     LIST_INVALID_EMPTY,
-    LIST_SHEILD_DAMAGED
+    LIST_SHEILD_DAMAGED,
+    LIST_INVALID_SIZE
+};
+
+enum ReallocType
+{
+    REALLOC_UP,
+    REALLOC_DOWN
 };
 
 typedef struct
