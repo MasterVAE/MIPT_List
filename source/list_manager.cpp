@@ -192,7 +192,7 @@ static ListErr ReallocList(List_t* list, ReallocType type)
         list_elem[absolute_index].previous = index == 0 ? 
                                                 (int)list->list_size - 1 : absolute_index - 1;
         absolute_index++;
-        index = ListNext(list, index);
+        index = (int)ListNext(list, index);
     } while (index != 0);
     
     list->first_empty = absolute_index;
@@ -307,14 +307,14 @@ size_t ListHead(List_t* list)
 {
     if(!list) return 0;
 
-    return list->elements[0].next;
+    return (size_t)list->elements[0].next;
 }
 
 size_t ListTail(List_t* list)
 {
     if(!list) return 0;
 
-    return list->elements[0].previous;
+    return (size_t)list->elements[0].previous;
 }
 
 ListErr ListAddFront(List_t* list, list_type value)
@@ -328,7 +328,7 @@ ListErr ListAddBack(List_t* list, list_type value)
 {
     if(!list) return LIST_NULL;
 
-    return ListAddAfter(list, ListTail(list), value);
+    return ListAddAfter(list, (int)ListTail(list), value);
 }
 
 list_type ListGetOnIndex(List_t* list, int index)
