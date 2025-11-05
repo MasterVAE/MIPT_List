@@ -26,8 +26,8 @@ enum ReallocType
 typedef struct
 {
     list_type value;
-    int next;
-    int previous;
+    size_t next;
+    ssize_t previous;
 } ListElement_t;
 
 typedef struct
@@ -36,26 +36,26 @@ typedef struct
     size_t list_size;
     ListElement_t* elements;
 
-    int first_empty;
+    size_t first_empty;
 
     FILE* log_file;
 } List_t;
 
-size_t      ListHead        (List_t* list);
-size_t      ListTail        (List_t* list);
+size_t      ListHead        (const List_t* list);
+size_t      ListTail        (const List_t* list);
 ListErr     ListAddFront    (List_t* list, list_type value);
 ListErr     ListAddBack     (List_t* list, list_type value);
-list_type   ListGetOnIndex  (List_t* list, int index);
-ListErr     ListSetOnIndex  (List_t* list, int index, list_type value);
+list_type   ListGetOnIndex  (const List_t* list, size_t index);
+ListErr     ListSetOnIndex  (List_t* list, size_t index, list_type value);
 
 ListErr     ListInit        (List_t* list);
 void        ListDestroy     (List_t* list);
-ListErr     ListAddAfter    (List_t* list, int index, list_type value);
-ListErr     ListAddBefore   (List_t* list, int index, list_type value);
-ListErr     ListDel         (List_t* list, int index);
-size_t      ListNext        (List_t* list, int index);
-size_t      ListPrev        (List_t* list, int index);
-ListErr     ListVerify      (List_t* list);
+ListErr     ListAddAfter    (List_t* list, size_t index, list_type value);
+ListErr     ListAddBefore   (List_t* list, size_t index, list_type value);
+ListErr     ListDel         (List_t* list, size_t index);
+size_t      ListNext        (const List_t* list, size_t index);
+size_t      ListPrev        (const List_t* list, size_t index);
+ListErr     ListVerify      (const List_t* list);
 void PrintError(ListErr errcode);
 int ValueEquality(list_type a, list_type b);
 
@@ -71,6 +71,7 @@ if(errcode != LIST_CORRECT)     \
     PrintError(errcode);        \
     return errcode;             \
 }
+
 #define VERIFY(list)                    \
 {                                       \
     ListErr errr = ListVerify(list);    \
@@ -80,6 +81,18 @@ if(errcode != LIST_CORRECT)     \
         ListDump(list);                 \
         return errr;                    \
     }                                   \
+}
+
+#define CHECK_MAIN(errcode)         \
+{                                   \
+    ListErr err = errcode;          \
+    if(err != LIST_CORRECT)         \
+    {                               \
+        PrintError(err);            \
+        ListDump(main_list);        \
+        ListDestroy(main_list);     \
+        return err;                 \
+    }                               \
 }
 
 #endif // LIST_MANAGER_H_

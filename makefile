@@ -2,7 +2,7 @@
 
 OBJ_DIR = build/obj
 TARGET_DIR = build
-SOURCE_DIR = source/
+SOURCE_DIR = ./
 INCLUDE_DIR = include/
 FILES_DIR = files
 
@@ -22,7 +22,7 @@ CFLAGS = -D _DEBUG -ggdb3 -std=c++17 -Wall -Wextra -Weffc++ -Waggressive-loop-op
 		 -pie -fPIE -Werror=vla\
 		 -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
-SOURCES = list.cpp list_manager.cpp list_logger.cpp 
+SOURCES = source/list_manager.cpp source/list_logger.cpp mains/list6.cpp
 OBJECTS := $(addprefix $(OBJ_DIR)/, $(SOURCES:.cpp=.o))
 TARGET = $(TARGET_DIR)/list.out
 
