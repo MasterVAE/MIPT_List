@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := lst_b
+.DEFAULT_GOAL := all
 
 OBJ_DIR = build/obj
 TARGET_DIR = build
@@ -22,22 +22,31 @@ CFLAGS = -D _DEBUG -ggdb3 -std=c++17 -Wall -Wextra -Weffc++ -Waggressive-loop-op
 		 -pie -fPIE -Werror=vla\
 		 -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
-SOURCES = source/list_manager.cpp source/list_logger.cpp mains/list1.cpp
-OBJECTS := $(addprefix $(OBJ_DIR)/, $(SOURCES:.cpp=.o))
-TARGET = $(TARGET_DIR)/list.out
+COMMON_SOURCES = source/list_manager.cpp source/list_logger.cpp
+COMMON_OBJECTS := $(addprefix $(OBJ_DIR)/, $(COMMON_SOURCES:.cpp=.o))
+
+TEST_SOURCES = $(wildcard tests/*.cpp)
+TEST_TARGETS = $(addprefix $(TARGET_DIR)/, $(notdir $(TEST_SOURCES:.cpp=.out)))
 
 HEADERS = $(wildcard $(INCLUDE_DIR)/*.h)
 
-$(TARGET): $(OBJECTS) | $(TARGET_DIR) $(FILES_DIR)
+all: $(TEST_TARGETS)
+	@echo "All tests built"
+
+$(TARGET_DIR)/%.out: $(OBJ_DIR)/tests/%.o $(COMMON_OBJECTS) | $(TARGET_DIR) $(FILES_DIR)
 	@$(CC) $(CFLAGS) $^ -o $@
-	@echo "LINKED"
+	@echo "BUILT: $@"
 
-run: $(TARGET)
-	@./$(TARGET)
+run_%: $(TARGET_DIR)/%.out
+	@./$<
 
-lst_b: $(TARGET)
+$(OBJ_DIR)/tests/%.o: tests/%.cpp $(HEADERS)
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJECTS): $(HEADERS)
+$(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(HEADERS)
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	@rm -rf $(OBJ_DIR)
@@ -46,7 +55,3 @@ clean:
 
 $(OBJ_DIR) $(TARGET_DIR) $(FILES_DIR):
 	@mkdir -p $@
-
-$(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.cpp
-	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) -c $< -o $@
