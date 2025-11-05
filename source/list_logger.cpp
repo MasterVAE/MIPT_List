@@ -249,11 +249,15 @@ static ListErr WriteGraphArrows(const List_t* list, FILE* file)
     for(size_t elem_index = 0; elem_index < list->list_capacity; elem_index++)
     {
         size_t next = list->elements[elem_index].next;
-        fprintf(file, "ELEM_%lu->ELEM_%lu[color=%s,tailport=\"n\", headport=\"n\"]\n"
-                                                                 , elem_index, next, NEXT_COLOR);
-
-
         ssize_t prev = list->elements[elem_index].previous;
+        if(prev >= 0)
+            fprintf(file, "ELEM_%lu->ELEM_%lu[color=%s,tailport=\"n\", headport=\"n\"]\n"
+                                                                 , elem_index, next, NEXT_COLOR);
+        else
+            fprintf(file, "ELEM_%lu->ELEM_%lu[color=%s,tailport=\"n\", headport=\"n\"]\n"
+                                                                 , elem_index, next, FREE_COLOR);
+
+        
         if(prev >= 0 && prev < (ssize_t)list->list_capacity)
         {
             fprintf(file, "ELEM_%lu->ELEM_%ld[color=%s,tailport=\"s\",headport=\"s\"]\n"
